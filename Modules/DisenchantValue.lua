@@ -130,6 +130,7 @@ local function OnItemTooltip(tooltip)
     if not row then return end
 
     local value = RowValue(row)
+    if ns.TooltipBlockStart then ns.TooltipBlockStart(tooltip) end
     tooltip:AddDoubleLine(LABEL, value and FormatMoney(value) or WHITE_FONT_COLOR:WrapTextInColorCode("?  "))
 
     if IsShiftKeyDown() then
