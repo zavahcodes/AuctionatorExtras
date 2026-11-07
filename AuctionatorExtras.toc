@@ -1,0 +1,21 @@
+## Interface: 120100, 120105, 16001, 50504, 38000, 20506, 11508, 11509
+## Title: Auctionator Extras
+## Notes: Extra features and tweaks on top of Auctionator.
+## Author: Hector Marcos
+## Version: 0.1.0
+## Category: Auctions
+## Dependencies: Auctionator
+## SavedVariables: AuctionatorExtrasDB
+
+# Core
+Core.lua
+
+# Data
+Data/DisenchantTable.lua
+
+# Modules
+Modules/HideSellPrice.lua
+Modules/DisenchantValue.lua
+
+# Options (always last, so every module is registered)
+Options.lua
