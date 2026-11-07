@@ -30,6 +30,11 @@ function ns.InitOptions()
             Settings.CreateSlider(category, setting, options, opt.tooltip)
             return setting
         end,
+        button = function(opt)
+            if layout and CreateSettingsButtonInitializer then
+                layout:AddInitializer(CreateSettingsButtonInitializer(opt.label, opt.buttonText, opt.onClick, opt.tooltip, true))
+            end
+        end,
         dropdown = function(opt)
             local setting = Register(opt.key, Settings.VarType.String, opt.label)
             local function GetOptions()
@@ -51,7 +56,7 @@ function ns.InitOptions()
                 local build = builders[opt.type]
                 assert(build, "AuctionatorExtras: unknown option type " .. tostring(opt.type))
                 local setting = build(opt)
-                if module.Refresh then
+                if setting and module.Refresh then
                     setting:SetValueChangedCallback(function() module.Refresh(ns.db) end)
                 end
             end
@@ -63,7 +68,20 @@ end
 
 SLASH_AUCTIONATOREXTRAS1 = "/aucx"
 SLASH_AUCTIONATOREXTRAS2 = "/auctionatorextras"
-SlashCmdList.AUCTIONATOREXTRAS = function()
+SlashCmdList.AUCTIONATOREXTRAS = function(msg)
+    local cmd, rest = (msg or ""):match("^%s*(%S*)%s*(.-)%s*$")
+    if cmd and cmd ~= "" then
+        local fn = ns.slashCommands[cmd:lower()]
+        if fn then
+            fn(rest)
+        else
+            local names = {}
+            for name in pairs(ns.slashCommands) do names[#names + 1] = name end
+            table.sort(names)
+            ns.Print("unknown command '" .. cmd .. "'. Commands: " .. table.concat(names, ", "))
+        end
+        return
+    end
     local category = ns.settingsCategory
     if category and Settings and Settings.OpenToCategory then
         Settings.OpenToCategory(category:GetID())

@@ -6,12 +6,13 @@ A small companion addon for **Auctionator** with extra features and tweaks.
 
 - **Hide Blizzard sell price**: removes Blizzard's own "Sell Price:" line from item tooltips, since Auctionator already shows the vendor price.
 - **Disenchant value**: on characters that know Disenchant, weapon and armor tooltips get a "Disenchant" line with the expected auction value of the materials the item disenchants into (hold Shift for the list of possible materials). Uses vanilla disenchant tables and Auctionator's scanned prices; shows "?" while a material has no price yet.
+- **TSM prices**: imports TSM Desktop's AuctionDB prices (Market Value by default; Min Buyout, Recent, Historical or Region Market Value selectable) into Auctionator's price database, so every Auctionator price comes from TSM. Runs on login/reload when TSM has newer data, and on demand with `/aucx import`, the options button, or Auctionator's scan button (which becomes "Import TSM"). Auctionator's own AH scanning (full scan, autoscan and saving prices while browsing) is turned off while this is on. TradeSkillMaster does **not** need to be enabled: it only needs the TSM Desktop app and the `TradeSkillMaster_AppHelper` folder installed (enabled or not). `TSMAppData.lua` in this addon is a symlink to `../TradeSkillMaster_AppHelper/AppData.lua`, which the addon decodes itself.
 
 Every feature can be toggled on or off on its own.
 
 ## Settings
 
-Open the settings with `/aucx` (or `/auctionatorextras`), or go to **Options → AddOns → Auctionator Extras**.
+Open the settings with `/aucx` (or `/auctionatorextras`), or go to **Options → AddOns → Auctionator Extras**. `/aucx import` forces a TSM price import.
 
 Settings are saved in `AuctionatorExtrasDB`.
 

@@ -14,6 +14,7 @@
 --               { type = "checkbox", key, label, tooltip }
 --               { type = "slider",   key, label, tooltip, min, max, step }
 --               { type = "dropdown", key, label, tooltip, choices = { {value, text}, ... } }
+--               { type = "button",   label, buttonText, tooltip, onClick }  (no setting)
 --    OnLoad   optional fn(db), called once after saved variables load
 --    Refresh  optional fn(db), called whenever one of its settings changes
 -------------------------------------------------------------------------------
@@ -34,6 +35,16 @@ function ns.RegisterModule(module)
     end
     ns.modules[#ns.modules + 1] = module
     return module
+end
+
+-- Slash subcommands: "/aucx <name> ..." calls fn(rest). Plain "/aucx" opens options.
+ns.slashCommands = {}
+function ns.RegisterSlash(name, fn)
+    ns.slashCommands[name:lower()] = fn
+end
+
+function ns.Print(msg)
+    print("|cff00ccffAuctionatorExtras|r: " .. msg)
 end
 
 local function SafeCall(fn, ...)

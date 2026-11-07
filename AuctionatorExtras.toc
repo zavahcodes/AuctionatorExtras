@@ -16,6 +16,9 @@ Data/DisenchantTable.lua
 # Modules
 Modules/HideSellPrice.lua
 Modules/DisenchantValue.lua
+Modules/TSMPrices.lua
+# TSM Desktop data: symlink to ../TradeSkillMaster_AppHelper/AppData.lua (loaded into ns.LoadData)
+TSMAppData.lua
 
 # Options (always last, so every module is registered)
 Options.lua
