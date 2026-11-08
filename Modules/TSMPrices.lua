@@ -4,8 +4,8 @@
 --  need to be enabled.
 --
 --  Data: TSM Desktop writes TradeSkillMaster_AppHelper/AppData.lua, which is
---  only loaded by WoW when TSM is enabled. TSMAppData.lua in this folder is a
---  symlink to that file and is listed in our .toc right after this module.
+--  only loaded by WoW when TSM is enabled. Our .toc lists that file directly
+--  (by relative path), right after this module, so no copy or link is needed.
 --  Each of its lines calls select(2, ...).LoadData(tag, realmOrRegion, data),
 --  and select(2, ...) is our namespace, so ns.LoadData below receives it. The
 --  data strings are decoded the same way TSM does (LibTSMService AuctionDB:
@@ -207,8 +207,8 @@ Import = function(force)
         if force then
             local wanted, seen = ns.TSMRealmDebug()
             ns.Print(string.format("no TSM Desktop data for %s. Looking for realm '%s'; the TSM file has: %s. "
-                .. "(Is the TSM Desktop app running and synced, and TSMAppData.lua linked to "
-                .. "TradeSkillMaster_AppHelper/AppData.lua?)", source, wanted, seen))
+                .. "(Is the TSM Desktop app running and synced, and the "
+                .. "TradeSkillMaster_AppHelper addon folder installed?)", source, wanted, seen))
         end
         return
     end
