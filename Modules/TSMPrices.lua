@@ -4,8 +4,8 @@
 --  need to be enabled.
 --
 --  Data: TSM Desktop writes TradeSkillMaster_AppHelper/AppData.lua, which is
---  only loaded by WoW when TSM is enabled. TSMAppData.lua in this folder is a
---  symlink to that file and is listed in our .toc right after this module.
+--  only loaded by WoW when TSM is enabled. Our .toc lists that file directly
+--  (by relative path), right after this module, so no copy or link is needed.
 --  Each of its lines calls select(2, ...).LoadData(tag, realmOrRegion, data),
 --  and select(2, ...) is our namespace, so ns.LoadData below receives it. The
 --  data strings are decoded the same way TSM does (LibTSMService AuctionDB:
@@ -174,6 +174,20 @@ local function Decoded()
     return unpack(decoded)
 end
 
+-- Realm and faction are only known after login, so nothing is decoded before it.
+local loggedIn = false
+
+-- Prices for the selected source (and their download time), or nil when there
+-- is no TSM data for this character (TSM not installed, or no data for the realm).
+local function SelectedPrices()
+    if not loggedIn then return nil end
+    local info = SOURCE_FIELDS[ns.db.tsmPriceSource] or SOURCE_FIELDS.DBMarket
+    local realmFields, regionFields, realmTime, regionTime = Decoded()
+    local prices = (info.region and regionFields or realmFields)[info.field]
+    if not prices or next(prices) == nil then return nil end
+    return prices, info.region and regionTime or realmTime
+end
+
 -------------------------------------------------------------------------------
 --  Import
 -------------------------------------------------------------------------------
@@ -198,17 +212,15 @@ Import = function(force)
     if not (Auctionator.Database and Auctionator.Database.ProcessScan) then return end
 
     local source = ns.db.tsmPriceSource
-    local info = SOURCE_FIELDS[source] or SOURCE_FIELDS.DBMarket
-    local realmFields, regionFields, realmTime, regionTime = Decoded()
-    local prices = (info.region and regionFields or realmFields)[info.field]
-    local downloadTime = info.region and regionTime or realmTime
+    local prices, downloadTime = SelectedPrices()
 
-    if not prices or next(prices) == nil then
-        if force then
+    if not prices then
+        if force and loggedIn then
             local wanted, seen = ns.TSMRealmDebug()
             ns.Print(string.format("no TSM Desktop data for %s. Looking for realm '%s'; the TSM file has: %s. "
-                .. "(Is the TSM Desktop app running and synced, and TSMAppData.lua linked to "
-                .. "TradeSkillMaster_AppHelper/AppData.lua?)", source, wanted, seen))
+                .. "(Is the TSM Desktop app running and synced, and the "
+                .. "TradeSkillMaster_AppHelper addon folder installed?) "
+                .. "Auctionator keeps scanning normally.", source, wanted, seen))
         end
         return
     end
@@ -217,6 +229,7 @@ Import = function(force)
         return
     end
 
+    local realmFields = Decoded()
     local numAuctions = realmFields.numAuctions or {}
     local itemIndexes, count = {}, 0
     for id, price in pairs(prices) do
@@ -238,10 +251,11 @@ Import = function(force)
 end
 
 -------------------------------------------------------------------------------
---  Turn off Auctionator's own scanning while the module is enabled
+--  Turn off Auctionator's own scanning while the module is enabled AND there is
+--  TSM data for this character. Without TSM, Auctionator works as usual.
 -------------------------------------------------------------------------------
 local function Active()
-    return ns.db.tsmPricesEnabled == true
+    return ns.db.tsmPricesEnabled == true and SelectedPrices() ~= nil
 end
 
 local function WrapMethod(mixin, name, wrapper)
@@ -310,7 +324,9 @@ ns.RegisterModule({
         { type = "checkbox", key = "tsmPricesEnabled", label = "Use TSM prices",
           tooltip = "Imports TSM Desktop's AuctionDB prices into Auctionator's price database on login "
               .. "(when TSM has newer data) and turns off Auctionator's own AH scanning. "
-              .. "Auctionator's scan button becomes \"" .. BUTTON_TEXT .. "\"." },
+              .. "Auctionator's scan button becomes \"" .. BUTTON_TEXT .. "\". "
+              .. "Only takes effect when TSM Desktop data (TradeSkillMaster_AppHelper) is installed; "
+              .. "without it Auctionator works normally." },
         { type = "dropdown", key = "tsmPriceSource", label = "TSM price source",
           tooltip = "TSM price saved as Auctionator's auction price.",
           choices = SOURCES },
@@ -331,6 +347,7 @@ events:RegisterEvent("PLAYER_LOGIN")
 events:RegisterEvent("AUCTION_HOUSE_SHOW")
 events:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_LOGIN" then
+        loggedIn = true
         C_Timer.After(LOGIN_DELAY, function() Import(false) end)
     elseif event == "AUCTION_HOUSE_SHOW" then
         -- Auctionator builds its tabs on AUCTION_HOUSE_SHOW; update after it.

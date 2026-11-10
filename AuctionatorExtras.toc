@@ -18,8 +18,8 @@ Modules/HideSellPrice.lua
 Modules/DisenchantValue.lua
 Modules/TooltipSpacing.lua
 Modules/TSMPrices.lua
-# TSM Desktop data: symlink to ../TradeSkillMaster_AppHelper/AppData.lua (loaded into ns.LoadData)
-TSMAppData.lua
+# TSM Desktop data, loaded straight from the AppHelper addon folder (feeds ns.LoadData)
+..\TradeSkillMaster_AppHelper\AppData.lua
 
 # Options (always last, so every module is registered)
 Options.lua
