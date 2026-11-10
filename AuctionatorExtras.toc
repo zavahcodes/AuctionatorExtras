@@ -9,6 +9,7 @@
 
 # Core
 Core.lua
+Profiler.lua
 
 # Data
 Data/DisenchantTable.lua

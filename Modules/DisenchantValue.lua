@@ -1,8 +1,10 @@
 -------------------------------------------------------------------------------
 --  Disenchant value: a "Disenchant" line on weapon/armor tooltips with the
 --  expected auction value of the materials the item disenchants into, so you
---  can compare it with the item's own auction and vendor price. Hold Shift to
---  list the possible materials. Only shown on characters that know Disenchant.
+--  can compare it with the item's own auction and vendor price. The line also
+--  shows the icon and chance of each possible material (optional); hold Shift
+--  to list them with amounts and prices. Only shown on characters that know
+--  Disenchant.
 --
 --  Auctionator has its own disenchant line, but on Forever it runs the retail
 --  code path, which only knows WoD+ materials; this module uses the vanilla
@@ -28,12 +30,15 @@ ns.RegisterModule({
     name = "Disenchant",
     defaults = {
         disenchantValue = true,
+        disenchantIcons = true,
     },
     options = {
         { type = "checkbox", key = "disenchantValue", label = "Show disenchant value",
           tooltip = "Adds a Disenchant line to weapon and armor tooltips with the expected auction value "
               .. "of the materials it disenchants into (hold Shift for the list of materials). "
               .. "Only on characters that know Disenchant." },
+        { type = "checkbox", key = "disenchantIcons", label = "Show material icons",
+          tooltip = "Shows the icon and chance of each possible material next to the Disenchant label." },
     },
 })
 
@@ -90,6 +95,17 @@ local function Round1(n)
     return math.floor(n * 10 + 0.5) / 10
 end
 
+local function Percent(pct)
+    return string.format("%g%%", Round1(pct))
+end
+
+-- Inline icon at text height, with the default icon border trimmed off.
+local function MaterialIcon(itemID)
+    local icon = C_Item.GetItemIconByID and C_Item.GetItemIconByID(itemID)
+    if not icon then return "" end
+    return "|T" .. icon .. ":0:0:0:0:64:64:5:59:5:59|t"
+end
+
 -- One entry per material, in table order: total chance of getting it and the
 -- chance-weighted quantity (weightedQty / pct = average stack when it drops).
 local function GroupMaterials(row)
@@ -130,17 +146,26 @@ local function OnItemTooltip(tooltip)
     if not row then return end
 
     local value = RowValue(row)
+    local materials = GroupMaterials(row)
+    local label = LABEL
+    if ns.db.disenchantIcons then
+        local parts = {}
+        for _, mat in ipairs(materials) do
+            parts[#parts + 1] = MaterialIcon(mat.itemID) .. " " .. WHITE_FONT_COLOR:WrapTextInColorCode(Percent(mat.pct))
+        end
+        label = LABEL .. "  " .. table.concat(parts, "  ")
+    end
     if ns.TooltipBlockStart then ns.TooltipBlockStart(tooltip) end
-    tooltip:AddDoubleLine(LABEL, value and FormatMoney(value) or WHITE_FONT_COLOR:WrapTextInColorCode("?  "))
+    tooltip:AddDoubleLine(label, value and FormatMoney(value) or WHITE_FONT_COLOR:WrapTextInColorCode("?  "))
 
     if IsShiftKeyDown() then
-        for _, mat in ipairs(GroupMaterials(row)) do
+        for _, mat in ipairs(materials) do
             local avgQty = mat.weightedQty / mat.pct
             local price = MaterialPrice(mat.itemID)
             tooltip:AddDoubleLine(
-                string.format("  %s %sx %s",
-                    WHITE_FONT_COLOR:WrapTextInColorCode(string.format("%g%%", Round1(mat.pct))),
-                    string.format("%g", Round1(avgQty)), MaterialName(mat.itemID)),
+                string.format("  %s %sx %s %s",
+                    WHITE_FONT_COLOR:WrapTextInColorCode(Percent(mat.pct)),
+                    string.format("%g", Round1(avgQty)), MaterialIcon(mat.itemID), MaterialName(mat.itemID)),
                 price and FormatMoney(math.floor(avgQty * price)) or WHITE_FONT_COLOR:WrapTextInColorCode("?  "))
         end
     end
