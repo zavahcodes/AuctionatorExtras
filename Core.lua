@@ -37,7 +37,7 @@ function ns.RegisterModule(module)
     return module
 end
 
--- Slash subcommands: "/aucx <name> ..." calls fn(rest). Plain "/aucx" opens options.
+-- Slash subcommands: "/aucx <name> ..." calls fn(rest). Plain "/aucx" prints where the options are.
 ns.slashCommands = {}
 function ns.RegisterSlash(name, fn)
     ns.slashCommands[name:lower()] = fn

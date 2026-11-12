@@ -68,6 +68,16 @@ end
 
 SLASH_AUCTIONATOREXTRAS1 = "/aucx"
 SLASH_AUCTIONATOREXTRAS2 = "/auctionatorextras"
+local function CommandList()
+    local names = {}
+    for name in pairs(ns.slashCommands) do names[#names + 1] = name end
+    table.sort(names)
+    return table.concat(names, ", ")
+end
+
+-- Plain "/aucx" only prints where the options live. Opening the Settings panel
+-- from addon code (Settings.OpenToCategory) taints its first redraw, and
+-- Blizzard's Social page then trips ADDON_ACTION_FORBIDDEN on IsUserOAuthed().
 SlashCmdList.AUCTIONATOREXTRAS = function(msg)
     local cmd, rest = (msg or ""):match("^%s*(%S*)%s*(.-)%s*$")
     if cmd and cmd ~= "" then
@@ -75,15 +85,9 @@ SlashCmdList.AUCTIONATOREXTRAS = function(msg)
         if fn then
             fn(rest)
         else
-            local names = {}
-            for name in pairs(ns.slashCommands) do names[#names + 1] = name end
-            table.sort(names)
-            ns.Print("unknown command '" .. cmd .. "'. Commands: " .. table.concat(names, ", "))
+            ns.Print("unknown command '" .. cmd .. "'. Commands: " .. CommandList())
         end
         return
     end
-    local category = ns.settingsCategory
-    if category and Settings and Settings.OpenToCategory then
-        Settings.OpenToCategory(category:GetID())
-    end
+    ns.Print("options: Esc > Options > AddOns > " .. CATEGORY_NAME .. ". Commands: " .. CommandList())
 end

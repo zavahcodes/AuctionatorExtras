@@ -13,7 +13,7 @@ Every feature can be toggled on or off on its own.
 
 ## Settings
 
-Open the settings with `/aucx` (or `/auctionatorextras`), or go to **Options → AddOns → Auctionator Extras**. `/aucx import` forces a TSM price import.
+Settings are in **Options → AddOns → Auctionator Extras**. `/aucx` (or `/auctionatorextras`) prints that path and the available commands; it does not open the panel itself, because opening Blizzard's Settings panel from addon code taints it. `/aucx import` forces a TSM price import.
 
 Settings are saved in `AuctionatorExtrasDB`.
 
